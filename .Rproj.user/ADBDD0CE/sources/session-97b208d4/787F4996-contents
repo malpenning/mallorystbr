@@ -1,0 +1,212 @@
+---
+title: "Mallory's TBR Predictor"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: journal
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(rio)
+library(here)
+library(tidyverse)
+library(DT)
+
+data <- rio::import(here::here("final.csv"))
+tabtime <- rio::import(here::here("tabtime.csv"))
+coef_tab <- rio::import(here::here("coef_tab.csv"))
+confusion_ridge <- rio::import(here::here("confusion_ridge.csv"))
+readdata <- rio::import(here::here("readdata.csv"))
+```
+
+Home {data-navmenu="Home"}
+======= 
+
+Column {data-width=250}
+-----------------------------------------------------------------------
+
+### What is this?
+_The following content was created in service of a capstone project for EDLD 640 at the University of Oregon in Winter 2024._
+
+This website is displaying the results of a logistic regression model of classification, trained on my read books list, predicting whether or not I will recommend a book that is on my to-be-read, or TBR, list. The data on these books were taken from my own personal TheStoryGraph account, where I am user <a href="https://app.thestorygraph.com/profile/malalaisee">@malalaisee.</a>
+
+The predictive factors here are mood, pace, whether a book is character- or plot-driven, where there is strong character development, whether characters are lovable, whether characters are diverse, whether characters are flawed, and the Flesch reading ease score (CITE) for each book's description. Where these values were not present in my own reviews, data was scraped from TheStoryGraph and the most common response from the website's user base was used instead. 
+
+For more information on the model setup and performance, please see the **Model evaluation** page. 
+For more information on how to run your own version of this modeling process, please see the **Do-it-yourself** page. 
+
+
+Column {data-width=750}
+-----------------------------------------------------------------------
+
+### Mallory's TBR (Sorted)
+
+```{r}
+#title etc. but also moods and pace, maybe also hyperlink the title to the book page?
+#I would also like to be able to sort by owned & unowned books
+data_small <- data[, c(3:6, 14, 15, 26, 43:44)]
+data_small$Titlelink <- NA
+
+for(i in 1:length(data_small$Link)) {
+  data_small$Titlelink[i] <- paste("<a href='", data_small$Link[i], "'>", data_small$Title[i], "</a>", sep="")
+}
+
+data_small <- data_small[, -c(1:2)]
+data_small <- data_small[, c(8, 1:7)]
+colnames(data_small)[7] <- "Reccomended?"
+colnames(data_small)[8] <- "How likely is it to be reccomended?"
+colnames(data_small)[6] <- "Owned?"
+colnames(data_small)[1] <- "Title"
+
+data_small[,8] <- round(data_small[,8], 3)
+data_small[,8] <- paste((data_small[,8]*100), "%", sep ="")
+
+```
+
+```{r}
+datatable(data_small,
+  options = list(paging = TRUE,    ## paginate the output
+                 pageLength = 15,  ## number of rows to output for each page
+                 scrollX = TRUE,   ## enable scrolling on X axis
+                 scrollY = TRUE,   ## enable scrolling on Y axis
+                 autoWidth = TRUE, ## use smart column width handling
+                 server = FALSE,   ## use client-side processing
+                 dom = 'Bfrtip',
+                 buttons = c('csv', 'excel')
+                 ),
+  extensions = 'Buttons',
+  selection = 'single', ## enable selection of a single row
+  filter = 'bottom',              ## include column filters at the bottom
+  rownames = FALSE,                ## don't show row numbers/names
+  escape = FALSE
+)
+```
+
+
+Model evaluation {data-navmenu="Model evaluation"}
+======= 
+Column{data-width=200}
+-----------------------------------------------------------------------
+For this project, logistic models with three different kinds of penalty were used. The performance of each model was compared, with specific attention paid to the logLoss (LL) and AUC values. LogLoss was ideally minimized and AUC was ideally maximized. 
+
+The performance for a model without regularization, a model with ridge penalty, and a model with lasso penalty are displayed in the first table.
+
+With the lowest logLoss of 0.47 and the highest AUC of 0.77, the model with ridge penalty was selected as the final model with the best performance. The ridge penalty model was tuned with an alpha of 0 and a lambda of 0.1. This model was used to make the predictions in the TBR dataset that are displayed on the **Home** page. 
+
+The confusion matrix for the predictions made during of the test dataset vs. the true answer for the test dataset for ridge penalty is also included in the second table, with PREDICTED answer on the column or x-axis and ACTUAL answer on the row or y-axis.
+
+Some flaws in the model training and testing are expected at this time due to the small size of the training and test datasets.
+
+The third table shows the 10 predictive factors with the most weight on the final model. As is clear to see, non-lovable characters were a strong dissuading factor, and a relaxing mood is a strong persuading factor when deciding what I will recommend. These factors are an interesting insight into what I do and do not enjoy in my reading.
+
+The fourth table is the training dataset.
+
+Have a bit of coding or R knowledge, and want to run your own model on your own TheStoryGraph data? Check out the **Do-it-yourself** page.
+
+Column {.tabset}
+-----------------------------------------------------------------------
+### Model performance
+```{r}
+tabtime[, c(3:8)] <- round(tabtime[, c(3:8)], 3)
+datatable(tabtime[, 2:8],
+          rownames = FALSE)
+```
+
+
+### Confusion matrix
+```{r}
+datatable(confusion_ridge,
+          rownames = FALSE)
+```
+
+### Variable importance
+```{r}
+colnames(coef_tab) <- c("Predictor", "Importance")
+coef_tab[,2] <- round(coef_tab[,2], 3)
+datatable(coef_tab,
+          rownames = FALSE)
+```
+
+### Training data
+
+```{r}
+read_small <- readdata[ , c(3:6, 14, 15, 26, 43)]
+read_small$Titlelink <- NA
+
+for(i in 1:length(read_small$Link)) {
+  read_small$Titlelink[i] <- paste("<a href='", read_small$Link[i], "'>", read_small$Title[i], "</a>", sep="")
+}
+
+read_small <- read_small[, -c(1:2)]
+read_small <- read_small[, c(7, 1:6)]
+colnames(read_small)[7] <- "Reccomended?"
+colnames(read_small)[6] <- "Owned?"
+colnames(read_small)[1] <- "Title"
+
+```
+```{r}
+datatable(read_small,
+  options = list(paging = TRUE,    ## paginate the output
+                 pageLength = 15,  ## number of rows to output for each page
+                 scrollX = TRUE,   ## enable scrolling on X axis
+                 scrollY = TRUE,   ## enable scrolling on Y axis
+                 autoWidth = TRUE, ## use smart column width handling
+                 server = FALSE,   ## use client-side processing
+                 dom = 'Bfrtip',
+                 buttons = c('csv', 'excel')
+                 ),
+  extensions = 'Buttons',
+  selection = 'single', ## enable selection of a single row
+  filter = 'bottom',              ## include column filters at the bottom
+  rownames = FALSE,                ## don't show row numbers/names
+  escape = FALSE
+)
+```
+
+
+
+ 
+Do-it-yourself {data-navmenu="Do-it-yourself"}
+======= 
+
+Column
+------------------------------------------
+If you are an active user of TheStorygraph, and you utilize their review function when you read to rate and comment on what you're reading, you likely have a dataset similar to the one used here that you can download from TheStorygraph's website to make your own model and predict your own reading preferences. _Some coding knowledge is required._
+
+**Download your TheStorygraph data as a .csv on your personal Account page,** under "Manage Your Data" -> "Export StoryGraph Library". This may take some time, but will include books you have marked as read as well as books you have marked as to-be-read.
+
+You will have to **add a column to your dataset manually** (I used Excel) and **paste in the link to each book's individual TheStoryGraph page** in order for the code I have written to be able to scrape the book data that is used to run the model. It can be a bit tedious, but due to the way TheStorygraph's website is coded, there is not an efficient way to further automate this process.
+
+Then, utilize the files in this **Github repo**: https://github.com/malpenning/book-capstone
+
+These are my exact code files as well as my exact datasets at the start point of data cleaning and scraping. Instructions are written within the code to help you follow along with it. Code for ShinyApp website deployment are also included.
+
+
+
+**This project utilized the following packages in R:**
+
+flexdashboard (https://pkgs.rstudio.com/flexdashboard/)
+
+rio (https://www.rdocumentation.org/packages/rio/versions/1.0.1)
+
+here (https://www.rdocumentation.org/packages/here/versions/1.0.1)
+
+tidyverse (https://www.rdocumentation.org/packages/tidyverse/versions/2.0.0)
+
+RSelenium (https://www.rdocumentation.org/packages/RSelenium/versions/1.7.9)
+
+rvest (https://www.rdocumentation.org/packages/rvest/versions/1.0.4)
+
+xml2 (https://www.rdocumentation.org/packages/xml2/versions/1.3.6)
+
+DT (https://rstudio.github.io/DT/)
+
+reticulate (https://rstudio.github.io/reticulate/)
+
+**And the following packages in Python:**
+
+textstat (https://pypi.org/project/textstat/)
+
+
