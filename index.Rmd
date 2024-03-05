@@ -32,7 +32,7 @@ _The following content was created in service of a capstone project for EDLD 640
 
 This website is displaying the results of a logistic regression model of classification, trained on my read books list, predicting whether or not I will recommend a book that is on my to-be-read, or TBR, list. The data on these books were taken from my own personal TheStoryGraph account, where I am user <a href="https://app.thestorygraph.com/profile/malalaisee">@malalaisee.</a>
 
-The predictive factors here are mood, pace, whether a book is character- or plot-driven, where there is strong character development, whether characters are lovable, whether characters are diverse, whether characters are flawed, and the Flesch reading ease score (CITE) for each book's description. Where these values were not present in my own reviews, data was scraped from TheStoryGraph and the most common response from the website's user base was used instead. 
+The predictive factors here are mood, pace, whether a book is character- or plot-driven, where there is strong character development, whether characters are lovable, whether characters are diverse, whether characters are flawed, and the <a href="https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests">Flesch reading ease score</a> for each book's description. Where these values were not present in my own reviews, data was scraped from TheStoryGraph and the most common response from the website's user base was used instead. 
 
 For more information on the model setup and performance, please see the **Model evaluation** page. 
 For more information on how to run your own version of this modeling process, please see the **Do-it-yourself** page. 
