@@ -41,7 +41,7 @@ For more information on how to run your own version of this modeling process, pl
 Column {data-width=750}
 -----------------------------------------------------------------------
 
-### Mallory's TBR (Sorted)
+### Mallory's TBR
 
 ```{r}
 #title etc. but also moods and pace, maybe also hyperlink the title to the book page?
@@ -95,7 +95,7 @@ The performance for a model without regularization, a model with ridge penalty, 
 
 With the lowest logLoss of 0.47 and the highest AUC of 0.77, the model with ridge penalty was selected as the final model with the best performance. The ridge penalty model was tuned with an alpha of 0 and a lambda of 0.1. This model was used to make the predictions in the TBR dataset that are displayed on the **Home** page. 
 
-The confusion matrix for the predictions made during of the test dataset vs. the true answer for the test dataset for ridge penalty is also included in the second table, with PREDICTED answer on the column or x-axis and ACTUAL answer on the row or y-axis.
+The confusion matrix for the predictions made during of the test dataset vs. the true answer for the test dataset for ridge penalty is also included in the second table, with PREDICTED answer on the column or x-axis and ACTUAL answer on the row or y-axis. Decision rules of >0.5 probability required for a "Yes" recommendation by the model to >0.8 probability required were tested to see the effects on model AUC, logLoss, and accuracy. Minimal changes to all values occured across this range of tested values, suggesting that probabilities tended to be clustered at very low and very high probabilities; a test rule value of >0.5 was used in the final model. 
 
 Some flaws in the model training and testing are expected at this time due to the small size of the training and test datasets.
 
